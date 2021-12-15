@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -9,24 +8,18 @@ import 'package:image/image.dart' as ImD;
 import 'package:netpix/widgets/progress_widget.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
-
 import 'home_page.dart';
-
 class UploadPage extends StatefulWidget {
   final User gCurrentUser;
-
   UploadPage({required this.gCurrentUser});
-
   @override
   _UploadPageState createState() => _UploadPageState();
 }
-
 class _UploadPageState extends State<UploadPage> with AutomaticKeepAliveClientMixin<UploadPage>{
   File? file;
   bool uploading = false;
   String postId = const Uuid().v4();
   TextEditingController descriptionTextEditingController = TextEditingController();
-
   captureImageWithCamera() async{
     Navigator.pop(context);
     PickedFile? imageFile = await ImagePicker().getImage(
@@ -37,7 +30,6 @@ class _UploadPageState extends State<UploadPage> with AutomaticKeepAliveClientMi
       file = File(imageFile!.path);
     });
   }
-
   pickImageFromGallery() async{
     Navigator.pop(context);
     PickedFile? imageFile = await ImagePicker().getImage(
@@ -48,7 +40,6 @@ class _UploadPageState extends State<UploadPage> with AutomaticKeepAliveClientMi
       file = File(imageFile!.path);
     });
   }
-
   takeImage(mContext){
     return showDialog(
         context: mContext,
@@ -73,7 +64,6 @@ class _UploadPageState extends State<UploadPage> with AutomaticKeepAliveClientMi
         }
     );
   }
-
   Widget displayUploadScreen(){
     return Container(
       color: Theme.of(context).primaryColor,
@@ -98,15 +88,12 @@ class _UploadPageState extends State<UploadPage> with AutomaticKeepAliveClientMi
       ),
     );
   }
-
   clearPostInfo(){
     descriptionTextEditingController.clear();
-
     setState(() {
       file = null;
     });
   }
-
   compressingPhoto() async{
     final tDirectory = await getTemporaryDirectory();
     final path = tDirectory.path;
@@ -118,7 +105,7 @@ class _UploadPageState extends State<UploadPage> with AutomaticKeepAliveClientMi
   }
 
   savePostInfoToFireStore({required String url, required String description}){
-    postsReference.doc(widget.gCurrentUser.id).collection("usersPosts").doc(postId).set({
+    postsReference.doc(widget.gCurrentUser.id).collection("userPosts").doc(postId).set({
       "postId": postId,
       "ownerId": widget.gCurrentUser.id,
       "timestamp": DateTime.now(),
@@ -129,7 +116,6 @@ class _UploadPageState extends State<UploadPage> with AutomaticKeepAliveClientMi
       "url": url
     });
   }
-
   controlUploadAndSave() async {
     setState(() {
       uploading = true;
@@ -144,15 +130,12 @@ class _UploadPageState extends State<UploadPage> with AutomaticKeepAliveClientMi
       postId = const Uuid().v4();
     });
   }
-
   Future <String> uploadPhoto(mImageFile) async {
     UploadTask storageUploadTask = storageReference.child("post_$postId.jpg").putFile(mImageFile);
     TaskSnapshot storageTaskSnapshot = await storageUploadTask;
     String downloadUrl = await storageTaskSnapshot.ref.getDownloadURL();
     return downloadUrl;
   }
-
-
   Widget displayUploadFormScreen(){
     return Scaffold(
       appBar: AppBar(
@@ -210,10 +193,8 @@ class _UploadPageState extends State<UploadPage> with AutomaticKeepAliveClientMi
       ),
     );
   }
-
   @override
   bool get wantKeepAlive => true;
-
   @override
   Widget build(BuildContext context) {
     return file == null ? displayUploadScreen(): displayUploadFormScreen();

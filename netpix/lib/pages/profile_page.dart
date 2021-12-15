@@ -3,22 +3,37 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:netpix/models/user.dart';
 import 'package:netpix/widgets/header_page.dart';
+import 'package:netpix/widgets/post_tile_widget.dart';
+import 'package:netpix/widgets/post_widget.dart';
 import 'package:netpix/widgets/progress_widget.dart';
 
 import 'edit_profile_page.dart';
 import 'home_page.dart';
-
 class ProfilePage extends StatefulWidget {
   final String userProfileId;
-
   const ProfilePage({required this.userProfileId});
-
   @override
   _ProfilePageState createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
   final String? currentOnlineUserId = currentUser?.id;
+  String postOrientation = "grid";
+  bool loading = false;
+  int countPost = 0;
+  List<Post> postsList = [];
+  int countTotalFollowers = 0;
+  int countTotalFollowing = 0;
+  bool following = false;
+
+  @override
+  void initState(){
+    super.initState();
+    getAllProfilePosts();
+    // getAllFollowers();
+    // getAllFollowing();
+    // checkIfAlreadyFollowing();
+  }
 
   createProfileTopView(){
     return FutureBuilder<DocumentSnapshot>(
@@ -80,17 +95,13 @@ class _ProfilePageState extends State<ProfilePage> {
       },
     );
   }
-
   createButton() {
     bool ownProfile = currentOnlineUserId == widget.userProfileId;
     if (ownProfile) {
       return createButtonTitleAndFunction(
           title: "Edit Profile", performAction: editUserProfile);
-    }else{
-      return Container();
     }
   }
-
   Container createButtonTitleAndFunction({required String title, required Function performAction}){
     return Container(
       padding: const EdgeInsets.only(top: 3.0),
@@ -111,7 +122,6 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
-
   Column createColumns(String title, int count){
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -131,11 +141,88 @@ class _ProfilePageState extends State<ProfilePage> {
       ],
     );
   }
-
   editUserProfile(){
     Navigator.push(context, MaterialPageRoute(builder: (context) => EditProfilePage(currentOnlineUserId: currentOnlineUserId!,))).then((_) {
       setState(() {
       });
+    });
+  }
+
+  setOrientation(String orientation){
+    setState(() {
+      postOrientation = orientation;
+    });
+  }
+
+  createListAndGridPostOrientation(){
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: <Widget>[
+        IconButton(
+          onPressed: ()=> setOrientation("grid"),
+          icon: const Icon(Icons.grid_on),
+          color: postOrientation == "grid"? Theme.of(context).primaryColor : Colors.grey,
+        ),
+        IconButton(
+          onPressed: ()=> setOrientation("list"),
+          icon: const Icon(Icons.list),
+          color: postOrientation == "list"? Theme.of(context).primaryColor : Colors.grey,
+        ),
+      ],
+    );
+  }
+
+  displayProfilePost(){
+    if(loading){
+      return circularProgress();
+    }
+    else if(postsList.isEmpty){
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const <Widget>[
+          Padding(
+            padding: EdgeInsets.all(30.0),
+            child: Icon(Icons.photo_library, color: Colors.grey, size: 200.0),
+          ),
+          Padding(
+            padding: EdgeInsets.only(top: 20.0),
+            child: Text("No Posts", style: TextStyle(fontSize: 40.0, color: Colors.redAccent, fontWeight: FontWeight.bold)),
+          )
+        ],
+      );
+    }
+    else if(postOrientation == "grid"){
+      List<GridTile> gridTilesList = [];
+      for (var eachPost in postsList) {
+        gridTilesList.add(GridTile(child: PostTile(post: eachPost)));
+      }
+      return GridView.count(
+        crossAxisCount: 3,
+        childAspectRatio: 1.0,
+        mainAxisSpacing: 1.5,
+        crossAxisSpacing: 1.5,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        children: gridTilesList,
+      );
+    }
+    else if(postOrientation == "list"){
+      return Column(
+        children: postsList,
+      );
+    }
+  }
+
+  getAllProfilePosts() async{
+    setState(() {
+      loading = true;
+    });
+
+    QuerySnapshot querySnapshot = await postsReference.doc(widget.userProfileId).collection("userPosts").orderBy("timestamp", descending: true).get();
+    setState(() {
+      loading = false;
+      countPost = querySnapshot.docs.length;
+      postsList = querySnapshot.docs.map((documentSnapshot) => Post.fromDocument(documentSnapshot)).toList();
     });
   }
 
@@ -145,7 +232,11 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: header(context, strTitle: "Profile"),
       body: ListView(
         children: <Widget>[
-          createProfileTopView()
+          createProfileTopView(),
+          const Divider(),
+          createListAndGridPostOrientation(),
+          const Divider(height: 0.0,),
+          displayProfilePost()
         ],
       ),
     );
