@@ -32,13 +32,13 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData
         (
-          scaffoldBackgroundColor: Colors.white,
-          dialogBackgroundColor: Colors.white,
-          primarySwatch: Colors.grey,
-          cardColor: Colors.white70,
-          colorScheme: colorScheme
+        scaffoldBackgroundColor: Colors.white,
+        dialogBackgroundColor: Colors.white,
+        primarySwatch: Colors.grey,
+        cardColor: Colors.white70,
+        colorScheme: colorScheme, textSelectionTheme: const TextSelectionThemeData(cursorColor: Colors.black)
       ),
-      home: HomePage(),
+      home: const HomePage(),
     );
   }
 }
