@@ -17,6 +17,7 @@ final GoogleSignIn gSignIn = GoogleSignIn();
 final usersReference = FirebaseFirestore.instance.collection("users");
 final Reference storageReference = FirebaseStorage.instance.ref().child("Posts Pictures");
 final postsReference = FirebaseFirestore.instance.collection("posts");
+final commentsReference = FirebaseFirestore.instance.collection("comments");
 final activityFeedReference = FirebaseFirestore.instance.collection("feed");
 User? currentUser;
 
@@ -124,30 +125,30 @@ class _HomePageState extends State<HomePage> {
   Widget buildSignInScreen() {
     return Scaffold(
       body: Container(
-          alignment: Alignment.center,
-          child:Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Text(
-                  "NetPix",
-                  style: TextStyle(fontSize: 92.0, color:Colors.black, fontFamily: "GrandHotel")
-              ),
-              GestureDetector(
-                onTap: ()=>loginUser(),
-                child: Container(
-                  width: 270.0,
-                  height: 65.0,
-                  decoration: const BoxDecoration(
-                      image: DecorationImage(
-                          image: AssetImage("assets/images/google_signin_button.png"
-                          )
+        alignment: Alignment.center,
+        child:Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Text(
+              "NetPix",
+              style: TextStyle(fontSize: 92.0, color:Colors.black, fontFamily: "GrandHotel")
+            ),
+            GestureDetector(
+              onTap: ()=>loginUser(),
+              child: Container(
+                width: 270.0,
+                height: 65.0,
+                decoration: const BoxDecoration(
+                  image: DecorationImage(
+                      image: AssetImage("assets/images/google_signin_button.png"
                       )
-                  ),
+                  )
                 ),
-              )
-            ],
-          )
+              ),
+            )
+          ],
+        )
       ),
     );
   }
