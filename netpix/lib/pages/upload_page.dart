@@ -1,5 +1,7 @@
 import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,18 +10,24 @@ import 'package:image/image.dart' as ImD;
 import 'package:netpix/widgets/progress_widget.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
+
 import 'home_page.dart';
+
 class UploadPage extends StatefulWidget {
   final User gCurrentUser;
+
   UploadPage({required this.gCurrentUser});
+
   @override
   _UploadPageState createState() => _UploadPageState();
 }
+
 class _UploadPageState extends State<UploadPage> with AutomaticKeepAliveClientMixin<UploadPage>{
   File? file;
   bool uploading = false;
   String postId = const Uuid().v4();
   TextEditingController descriptionTextEditingController = TextEditingController();
+
   captureImageWithCamera() async{
     Navigator.pop(context);
     PickedFile? imageFile = await ImagePicker().getImage(
@@ -30,6 +38,7 @@ class _UploadPageState extends State<UploadPage> with AutomaticKeepAliveClientMi
       file = File(imageFile!.path);
     });
   }
+
   pickImageFromGallery() async{
     Navigator.pop(context);
     PickedFile? imageFile = await ImagePicker().getImage(
@@ -40,6 +49,7 @@ class _UploadPageState extends State<UploadPage> with AutomaticKeepAliveClientMi
       file = File(imageFile!.path);
     });
   }
+
   takeImage(mContext){
     return showDialog(
         context: mContext,
@@ -64,6 +74,7 @@ class _UploadPageState extends State<UploadPage> with AutomaticKeepAliveClientMi
         }
     );
   }
+
   Widget displayUploadScreen(){
     return Container(
       color: Theme.of(context).primaryColor,
@@ -78,7 +89,7 @@ class _UploadPageState extends State<UploadPage> with AutomaticKeepAliveClientMi
                   shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                     RoundedRectangleBorder(borderRadius: BorderRadius.circular(9.0)),
                   ),
-                  backgroundColor:MaterialStateProperty.all(Colors.blue)
+                backgroundColor:MaterialStateProperty.all(Colors.blue)
               ),
               child: const Text("Upload Image", style: TextStyle(color: Colors.black, fontSize: 20.0)),
               onPressed: () => takeImage(context),
@@ -88,12 +99,15 @@ class _UploadPageState extends State<UploadPage> with AutomaticKeepAliveClientMi
       ),
     );
   }
+
   clearPostInfo(){
     descriptionTextEditingController.clear();
+
     setState(() {
       file = null;
     });
   }
+
   compressingPhoto() async{
     final tDirectory = await getTemporaryDirectory();
     final path = tDirectory.path;
@@ -115,7 +129,19 @@ class _UploadPageState extends State<UploadPage> with AutomaticKeepAliveClientMi
       "description": description,
       "url": url
     });
+    savePostsToTimeline(postId);
   }
+
+  savePostsToTimeline(String id) async {
+    QuerySnapshot querySnapshot = await followersReference.doc(currentUser!.id).collection("userFollowers").get();
+    DocumentSnapshot post = await postsReference.doc(currentUser!.id).collection("userPosts").doc(id).get();
+    for (var document in querySnapshot.docs) {
+      if(document.exists){
+        timelineReference.doc(document.id).collection("timelinePosts").doc(postId).set(post.data() as Map<String, dynamic>);
+      }
+    }
+  }
+
   controlUploadAndSave() async {
     setState(() {
       uploading = true;
@@ -130,12 +156,15 @@ class _UploadPageState extends State<UploadPage> with AutomaticKeepAliveClientMi
       postId = const Uuid().v4();
     });
   }
+
   Future <String> uploadPhoto(mImageFile) async {
     UploadTask storageUploadTask = storageReference.child("post_$postId.jpg").putFile(mImageFile);
     TaskSnapshot storageTaskSnapshot = await storageUploadTask;
     String downloadUrl = await storageTaskSnapshot.ref.getDownloadURL();
     return downloadUrl;
   }
+
+
   Widget displayUploadFormScreen(){
     return Scaffold(
       appBar: AppBar(
@@ -145,8 +174,7 @@ class _UploadPageState extends State<UploadPage> with AutomaticKeepAliveClientMi
         title: const Text("New Post", style: TextStyle(fontSize: 24.0, color: Colors.white, fontWeight: FontWeight.bold)),
         actions: <Widget>[
           TextButton(
-            // onPressed: uploading ? null : () => controlUploadAndSave(),
-            onPressed: controlUploadAndSave,
+            onPressed: uploading ? null : () => controlUploadAndSave(),
             child: const Text("Share", style: TextStyle(color: Colors.lightBlueAccent, fontWeight: FontWeight.bold, fontSize: 16.0)),
           )
         ],
@@ -193,8 +221,10 @@ class _UploadPageState extends State<UploadPage> with AutomaticKeepAliveClientMi
       ),
     );
   }
+
   @override
   bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
     return file == null ? displayUploadScreen(): displayUploadFormScreen();

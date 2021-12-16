@@ -21,6 +21,7 @@ final commentsReference = FirebaseFirestore.instance.collection("comments");
 final activityFeedReference = FirebaseFirestore.instance.collection("feed");
 final followersReference = FirebaseFirestore.instance.collection("followers");
 final followingReference = FirebaseFirestore.instance.collection("following");
+final timelineReference = FirebaseFirestore.instance.collection("timeline");
 
 final DateTime timestamp = DateTime.now();
 User? currentUser;
@@ -100,10 +101,10 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       body: PageView(
         children: <Widget>[
-          TimelinePage(),
+          TimelinePage(gCurrentUser: currentUser!),
           const SearchPage(),
           UploadPage(gCurrentUser: currentUser!),
-          NotificationsPage(),
+          const NotificationsPage(),
           ProfilePage(userProfileId: currentUser!.id)
         ],
         controller: pageController,
@@ -129,30 +130,30 @@ class _HomePageState extends State<HomePage> {
   Widget buildSignInScreen() {
     return Scaffold(
       body: Container(
-          alignment: Alignment.center,
-          child:Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Text(
-                  "NetPix",
-                  style: TextStyle(fontSize: 92.0, color:Colors.black, fontFamily: "GrandHotel")
-              ),
-              GestureDetector(
-                onTap: ()=>loginUser(),
-                child: Container(
-                  width: 270.0,
-                  height: 65.0,
-                  decoration: const BoxDecoration(
-                      image: DecorationImage(
-                          image: AssetImage("assets/images/google_signin_button.png"
-                          )
+        alignment: Alignment.center,
+        child:Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Text(
+              "NetPix",
+              style: TextStyle(fontSize: 92.0, color:Colors.black, fontFamily: "GrandHotel")
+            ),
+            GestureDetector(
+              onTap: ()=>loginUser(),
+              child: Container(
+                width: 270.0,
+                height: 65.0,
+                decoration: const BoxDecoration(
+                  image: DecorationImage(
+                      image: AssetImage("assets/images/google_signin_button.png"
                       )
-                  ),
+                  )
                 ),
-              )
-            ],
-          )
+              ),
+            )
+          ],
+        )
       ),
     );
   }
