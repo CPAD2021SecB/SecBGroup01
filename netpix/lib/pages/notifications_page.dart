@@ -53,7 +53,7 @@ Widget? mediaPreview;
 class NotificationsItem extends StatelessWidget {
   final String profileName;
   final String type;
-  final String? commentData;
+  final String commentData;
   final String postId;
   final String userId;
   final String userProfileImg;
@@ -63,7 +63,7 @@ class NotificationsItem extends StatelessWidget {
   NotificationsItem({
     required this.profileName,
     required this.type,
-    this.commentData,
+    required this.commentData,
     required this.postId,
     required this.userId,
     required this.userProfileImg,
@@ -72,10 +72,34 @@ class NotificationsItem extends StatelessWidget {
   });
 
   factory NotificationsItem.fromDocument(DocumentSnapshot documentSnapshot){
+    if(documentSnapshot["type"]=="follow"){
+      return NotificationsItem(
+        profileName: documentSnapshot["profileName"],
+        type: documentSnapshot["type"],
+        commentData: "",
+        url: "",
+        postId: "",
+        userId: documentSnapshot["userId"],
+        userProfileImg: documentSnapshot["userProfileImg"],
+        timestamp: documentSnapshot["timestamp"],
+      );
+    }
+    if(documentSnapshot["type"]=="like"){
+      return NotificationsItem(
+        profileName: documentSnapshot["profileName"],
+        type: documentSnapshot["type"],
+        commentData: "",
+        url: documentSnapshot["url"],
+        postId: documentSnapshot["postId"],
+        userId: documentSnapshot["userId"],
+        userProfileImg: documentSnapshot["userProfileImg"],
+        timestamp: documentSnapshot["timestamp"],
+      );
+    }
     return NotificationsItem(
       profileName: documentSnapshot["profileName"],
       type: documentSnapshot["type"],
-      // commentData: documentSnapshot["commentData"],
+      commentData: documentSnapshot["commentData"],
       url: documentSnapshot["url"],
       postId: documentSnapshot["postId"],
       userId: documentSnapshot["userId"],
